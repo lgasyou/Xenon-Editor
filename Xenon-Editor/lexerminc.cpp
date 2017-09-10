@@ -1,6 +1,6 @@
 #include <Qsci/qscilexer.h>
 
-class LexerMinC {
+class LexerMinC : public QsciLexer {
 public:
     LexerMinC() {}
 };

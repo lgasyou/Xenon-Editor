@@ -132,12 +132,12 @@ void MainWindow::createActions() {
     connect(saveAsAct, SIGNAL(triggered()), this, SLOT(saveAs()));
 
     settingAct = new QAction(tr("Settings"), this);
-    settingAct->setStatusTip(tr("Settings"));
+    settingAct->setStatusTip(tr("Open Settings dialog"));
     connect(settingAct, &QAction::triggered, this, &MainWindow::changeSettings);
 
     exitAct = new QAction(tr("E&xit"), this);
     exitAct->setShortcut(tr("Ctrl+Q"));
-    exitAct->setStatusTip(tr("Exit the application"));
+    exitAct->setStatusTip(tr("Exit Xenon Editor"));
     connect(exitAct, SIGNAL(triggered()), this, SLOT(close()));
 
     cutAct = new QAction(tr("Cu&t"), this);
@@ -159,7 +159,7 @@ void MainWindow::createActions() {
     connect(pasteAct, SIGNAL(triggered()), textEdit, SLOT(paste()));
 
     aboutAct = new QAction(tr("&About"), this);
-    aboutAct->setStatusTip(tr("Show the application's About box"));
+    aboutAct->setStatusTip(tr("Show Xenon Editor's About box"));
     connect(aboutAct, SIGNAL(triggered()), this, SLOT(about()));
 
     aboutQtAct = new QAction(tr("About &Qt"), this);
@@ -233,7 +233,7 @@ void MainWindow::writeSettings() {
 
 bool MainWindow::maybeSave() {
     if (textEdit->isModified()) {
-        int ret = QMessageBox::warning(this, tr("Application"),
+        int ret = QMessageBox::warning(this, tr("Xenon Editor"),
                      tr("The document has been modified.\n"
                         "Do you want to save your changes?"),
                      QMessageBox::Yes | QMessageBox::Default,
@@ -297,7 +297,7 @@ void MainWindow::setCurrentFile(const QString &fileName) {
     else
         shownName = strippedName(curFile);
 
-    setWindowTitle(tr("%1[*] - %2").arg(shownName).arg(tr("Application")));
+    setWindowTitle(tr("%1[*] - %2").arg(shownName).arg(tr("Xenon Editor")));
 }
 
 QString MainWindow::strippedName(const QString &fullFileName) {
