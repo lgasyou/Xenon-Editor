@@ -1,24 +1,3 @@
-/****************************************************************************
-**
-** Copyright (C) 2004-2006 Trolltech ASA. All rights reserved.
-**
-** This file is part of the example classes of the Qt Toolkit.
-**
-** Licensees holding a valid Qt License Agreement may use this file in
-** accordance with the rights, responsibilities and obligations
-** contained therein.  Please consult your licensing agreement or
-** contact sales@trolltech.com if any conditions of this licensing
-** agreement are not clear to you.
-**
-** Further information about Qt licensing is available at:
-** http://www.trolltech.com/products/qt/licensing.html or by
-** contacting info@trolltech.com.
-**
-** This file is provided AS IS with NO WARRANTY OF ANY KIND, INCLUDING THE
-** WARRANTY OF DESIGN, MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
-**
-****************************************************************************/
-
 #include <QAction>
 #include <QApplication>
 #include <QCloseEvent>
@@ -37,12 +16,21 @@
 #include <QToolBar>
 
 #include <Qsci/qsciscintilla.h>
+#include <Qsci/qsciapis.h>
 
 #include "mainwindow.h"
+#include "lexerminc.h"
 #include "configs.h"
 
 MainWindow::MainWindow() {
     textEdit = new QsciScintilla;
+    textLexer = new LexerMinC;
+    textLexer->setColor(QColor(Qt::red), QsciLexerCPP::KeywordSet2);
+    textEdit->setLexer(textLexer);
+    setupApis();
+    textEdit->setAutoCompletionSource(QsciScintilla::AcsAll);
+    textEdit->setAutoCompletionCaseSensitivity(true);
+    textEdit->setAutoCompletionThreshold(1);
     setCentralWidget(textEdit);
 
     createActions();
@@ -109,6 +97,20 @@ void MainWindow::about() {
 
 void MainWindow::documentWasModified() {
     setWindowModified(textEdit->isModified());
+}
+
+void MainWindow::onMarginClicked(int margin, int line, Qt::KeyboardModifiers state) {
+    Q_UNUSED(state);
+
+    if (margin == 1) {
+        if (textEdit->markersAtLine(line) != 0) {
+            textEdit->markerDelete(line, 1);
+//            做一些去掉断点的逻辑程序
+        } else {
+            textEdit->markerAdd(line, 1);
+//            做一些增加断点的逻辑程序
+        }
+    }
 }
 
 void MainWindow::createActions() {
@@ -205,20 +207,48 @@ void MainWindow::readSettings() {
     auto c = GetConfig();
     c->windowPos = settings.value("pos", QPoint(200, 200)).toPoint();
     c->windowSize = settings.value("size", QSize(400, 400)).toSize();
-    c->autoIndent = settings.value("autoIndet", true).toBool();
+    c->autoIndent = settings.value("autoIndent", true).toBool();
     c->tabWidth = settings.value("tabWidth", 4).toInt();
     c->fontSize = settings.value("fontSize", 15).toInt();
+    c->showLineNumber = settings.value("showLineNumber", true).toBool();
 
     resize(c->windowSize);
     move(c->windowPos);
     textEdit->setAutoIndent(c->autoIndent);
     textEdit->setTabWidth(c->tabWidth);
+    auto lexer = textEdit->lexer();
     auto font = QFont(); font.setPointSize(c->fontSize);
-    textEdit->setFont(font);
+    lexer->setFont(font);
 
-    textEdit->setMarginType(0, QsciScintilla::NumberMargin);
-    textEdit->setMarginLineNumbers(0, true);
-    textEdit->setMarginWidth(0, 30);
+    if (c->showLineNumber) {
+        textEdit->setMarginType(0, QsciScintilla::NumberMargin);
+        textEdit->setMarginLineNumbers(0, true);
+        textEdit->setMarginWidth(0, 20);
+    }
+
+    textEdit->setMarginType(1, QsciScintilla::SymbolMargin);
+    textEdit->setMarginLineNumbers(1, false);
+    textEdit->setMarginWidth(1, 20);
+    textEdit->setMarginSensitivity(1, true);    //设置是否可以显示断点
+    textEdit->setMarginsBackgroundColor(QColor("#bbfaae"));
+    textEdit->setMarginMarkerMask(1, 0x02);
+    connect(textEdit, &QsciScintilla::marginClicked,
+            this,     &MainWindow::onMarginClicked);
+    textEdit->markerDefine(QsciScintilla::Circle, 1);
+    textEdit->setMarkerBackgroundColor(QColor("#ee1111"), 1);
+
+    textEdit->setMarginType(2, QsciScintilla::SymbolMargin);
+    textEdit->setMarginLineNumbers(2, false);
+    textEdit->setMarginWidth(2, 20);
+    textEdit->setMarginSensitivity(2, false);
+    textEdit->setMarginMarkerMask(2, 0x04);
+    textEdit->markerDefine(QsciScintilla::RightArrow, 2);
+    textEdit->setMarkerBackgroundColor(QColor("#eaf593"), 2);
+
+    textEdit->setMarginType(3, QsciScintilla::SymbolMargin);
+    textEdit->setMarginLineNumbers(3, false);
+    textEdit->setMarginWidth(3, 15);
+    textEdit->setMarginSensitivity(3, true);
 }
 
 void MainWindow::writeSettings() {
@@ -229,6 +259,7 @@ void MainWindow::writeSettings() {
     settings.setValue("autoIndent", c->autoIndent);
     settings.setValue("tabWidth", c->tabWidth);
     settings.setValue("fontSize", c->fontSize);
+    settings.setValue("showLineNumber", c->showLineNumber);
 }
 
 bool MainWindow::maybeSave() {
@@ -302,4 +333,22 @@ void MainWindow::setCurrentFile(const QString &fileName) {
 
 QString MainWindow::strippedName(const QString &fullFileName) {
     return QFileInfo(fullFileName).fileName();
+}
+
+void MainWindow::setupApis() {
+    apis = new QsciAPIs(textLexer);
+    apis->add("int");
+    apis->add("real");
+    apis->add("string");
+
+    apis->add("if");
+    apis->add("else");
+    apis->add("while");
+    apis->add("return");
+    apis->add("in");
+    apis->add("out");
+    apis->add("do");
+    apis->add("until");
+
+    apis->prepare();
 }

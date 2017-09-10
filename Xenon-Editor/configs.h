@@ -18,8 +18,6 @@ public:
     QSize       windowSize;
     QPoint      windowPos;
 
-    QsciLexer*  lexer = nullptr;
-
 private:
     friend Config *const GetConfig();
     Config() {}

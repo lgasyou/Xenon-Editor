@@ -31,7 +31,8 @@ SOURCES += \
 
 HEADERS += \
         mainwindow.h \
-    configs.h
+    configs.h \
+    lexerminc.h
 
 RESOURCES += \
     application.qrc
