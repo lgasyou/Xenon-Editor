@@ -4,6 +4,7 @@
 #include <QFont>
 #include <QSize>
 #include <QPoint>
+#include <QString>
 #include <QSci/qscilexer.h>
 
 struct Config {
@@ -17,6 +18,8 @@ public:
 
     QSize       windowSize;
     QPoint      windowPos;
+
+    QString     interpreter;
 
 private:
     friend Config *const GetConfig();

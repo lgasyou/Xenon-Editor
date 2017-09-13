@@ -27,12 +27,19 @@ DEFINES += QT_DEPRECATED_WARNINGS
 SOURCES += \
         main.cpp \
         mainwindow.cpp \
-    lexerminc.cpp
+    lexerminc.cpp \
+    terminalcontroller.cpp \
+    terminalcontroller.cpp
 
 HEADERS += \
         mainwindow.h \
     configs.h \
-    lexerminc.h
+    lexerminc.h \
+    terminalcontroller.h \
+    terminalcontroller.h
 
 RESOURCES += \
     application.qrc
+
+FORMS += \
+    terminalcontroller.ui

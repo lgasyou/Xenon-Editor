@@ -14,6 +14,8 @@
 #include <QStatusBar>
 #include <QTextStream>
 #include <QToolBar>
+#include <QProcess>
+#include <QDebug>
 
 #include <Qsci/qsciscintilla.h>
 #include <Qsci/qsciapis.h>
@@ -21,11 +23,14 @@
 #include "mainwindow.h"
 #include "lexerminc.h"
 #include "configs.h"
+#include "terminalcontroller.h"
 
 MainWindow::MainWindow() {
     textEdit = new QsciScintilla;
+    textEdit->setUtf8(true);
+    terminalController = new TerminalController();
     textLexer = new LexerMinC;
-    textLexer->setColor(QColor(Qt::red), QsciLexerCPP::KeywordSet2);
+    textLexer->setColor(QColor(Qt::blue), QsciLexerCPP::KeywordSet2);
     textEdit->setLexer(textLexer);
     setupApis();
     textEdit->setAutoCompletionSource(QsciScintilla::AcsAll);
@@ -99,18 +104,12 @@ void MainWindow::documentWasModified() {
     setWindowModified(textEdit->isModified());
 }
 
-void MainWindow::onMarginClicked(int margin, int line, Qt::KeyboardModifiers state) {
-    Q_UNUSED(state);
-
-    if (margin == 1) {
-        if (textEdit->markersAtLine(line) != 0) {
-            textEdit->markerDelete(line, 1);
-//            做一些去掉断点的逻辑程序
-        } else {
-            textEdit->markerAdd(line, 1);
-//            做一些增加断点的逻辑程序
-        }
-    }
+void MainWindow::run() {
+    QStringList arguments;
+    arguments << curFile;
+    terminalController->init(GetConfig()->interpreter, arguments);
+    terminalController->start();
+    terminalController->show();
 }
 
 void MainWindow::createActions() {
@@ -141,6 +140,11 @@ void MainWindow::createActions() {
     exitAct->setShortcut(tr("Ctrl+Q"));
     exitAct->setStatusTip(tr("Exit Xenon Editor"));
     connect(exitAct, SIGNAL(triggered()), this, SLOT(close()));
+
+    runAct = new QAction(tr("Run"), this);
+    runAct->setShortcut(tr("Ctrl+R"));
+    runAct->setStatusTip(tr("Run this program"));
+    connect(runAct, SIGNAL(triggered()), this, SLOT(run()));
 
     cutAct = new QAction(tr("Cu&t"), this);
     cutAct->setShortcut(tr("Ctrl+X"));
@@ -191,6 +195,9 @@ void MainWindow::createMenus() {
     editMenu->addAction(copyAct);
     editMenu->addAction(pasteAct);
 
+    runMenu = menuBar()->addMenu(tr("&Run"));
+    runMenu->addAction(runAct);
+
     menuBar()->addSeparator();
 
     helpMenu = menuBar()->addMenu(tr("&Help"));
@@ -211,6 +218,7 @@ void MainWindow::readSettings() {
     c->tabWidth = settings.value("tabWidth", 4).toInt();
     c->fontSize = settings.value("fontSize", 15).toInt();
     c->showLineNumber = settings.value("showLineNumber", true).toBool();
+    c->interpreter = settings.value("interpreter", "E:/Documents/GitHub/Xenon-Editor/build-Xenon-Editor-Desktop_Qt_5_9_1_MSVC2017_64bit-Release/release/Terminal.exe").toString();
 
     resize(c->windowSize);
     move(c->windowPos);
@@ -223,32 +231,8 @@ void MainWindow::readSettings() {
     if (c->showLineNumber) {
         textEdit->setMarginType(0, QsciScintilla::NumberMargin);
         textEdit->setMarginLineNumbers(0, true);
-        textEdit->setMarginWidth(0, 20);
+        textEdit->setMarginWidth(0, 30);
     }
-
-    textEdit->setMarginType(1, QsciScintilla::SymbolMargin);
-    textEdit->setMarginLineNumbers(1, false);
-    textEdit->setMarginWidth(1, 20);
-    textEdit->setMarginSensitivity(1, true);    //设置是否可以显示断点
-    textEdit->setMarginsBackgroundColor(QColor("#bbfaae"));
-    textEdit->setMarginMarkerMask(1, 0x02);
-    connect(textEdit, &QsciScintilla::marginClicked,
-            this,     &MainWindow::onMarginClicked);
-    textEdit->markerDefine(QsciScintilla::Circle, 1);
-    textEdit->setMarkerBackgroundColor(QColor("#ee1111"), 1);
-
-    textEdit->setMarginType(2, QsciScintilla::SymbolMargin);
-    textEdit->setMarginLineNumbers(2, false);
-    textEdit->setMarginWidth(2, 20);
-    textEdit->setMarginSensitivity(2, false);
-    textEdit->setMarginMarkerMask(2, 0x04);
-    textEdit->markerDefine(QsciScintilla::RightArrow, 2);
-    textEdit->setMarkerBackgroundColor(QColor("#eaf593"), 2);
-
-    textEdit->setMarginType(3, QsciScintilla::SymbolMargin);
-    textEdit->setMarginLineNumbers(3, false);
-    textEdit->setMarginWidth(3, 15);
-    textEdit->setMarginSensitivity(3, true);
 }
 
 void MainWindow::writeSettings() {
@@ -260,6 +244,7 @@ void MainWindow::writeSettings() {
     settings.setValue("tabWidth", c->tabWidth);
     settings.setValue("fontSize", c->fontSize);
     settings.setValue("showLineNumber", c->showLineNumber);
+    settings.setValue("interpreter", c->interpreter);
 }
 
 bool MainWindow::maybeSave() {
@@ -349,6 +334,7 @@ void MainWindow::setupApis() {
     apis->add("out");
     apis->add("do");
     apis->add("until");
+    apis->add("for");
 
     apis->prepare();
 }

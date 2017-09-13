@@ -8,6 +8,7 @@ class QMenu;
 class QsciScintilla;
 class QsciAPIs;
 class QsciLexer;
+class TerminalController;
 
 class MainWindow : public QMainWindow {
     Q_OBJECT
@@ -26,7 +27,10 @@ private slots:
     void changeSettings();
     void about();
     void documentWasModified();
-    void onMarginClicked(int, int, Qt::KeyboardModifiers);
+    void run();
+
+signals:
+    void inputSignal(const QString &in);
 
 private:
     void createActions();
@@ -43,12 +47,14 @@ private:
 
 private:
     QsciScintilla *textEdit;
+    TerminalController *terminalController;
     QsciAPIs *apis;
     QsciLexer *textLexer;
     QString curFile;
 
     QMenu *fileMenu;
     QMenu *editMenu;
+    QMenu *runMenu;
     QMenu *helpMenu;
     QToolBar *fileToolBar;
     QToolBar *editToolBar;
@@ -58,6 +64,8 @@ private:
     QAction *saveAsAct;
     QAction *settingAct;
     QAction *exitAct;
+
+    QAction *runAct;
 
     QAction *cutAct;
     QAction *copyAct;
