@@ -9,6 +9,7 @@ class QsciScintilla;
 class QsciAPIs;
 class QsciLexer;
 class TerminalController;
+class SettingDialog;
 
 class MainWindow : public QMainWindow {
     Q_OBJECT
@@ -28,6 +29,7 @@ private slots:
     void about();
     void documentWasModified();
     void run();
+    void readSettings();
 
 signals:
     void inputSignal(const QString &in);
@@ -36,7 +38,6 @@ private:
     void createActions();
     void createMenus();
     void createStatusBar();
-    void readSettings();
     void writeSettings();
     bool maybeSave();
     void loadFile(const QString &fileName);
@@ -51,6 +52,8 @@ private:
     QsciAPIs *apis;
     QsciLexer *textLexer;
     QString curFile;
+
+    SettingDialog *settingDialog;
 
     QMenu *fileMenu;
     QMenu *editMenu;

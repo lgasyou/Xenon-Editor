@@ -27,12 +27,16 @@ protected:
 private slots:
     void readFromTerminal();
     void write2Terminal();
+    void write();
 
 private:
     QProcess *proc;
     QString interpreter;
     QFile filein;
     QStringList arguments;
+    bool writingManually;
+    QString cmd;
+    QString cachedText;
     Ui::TerminalController *ui;
 };
 

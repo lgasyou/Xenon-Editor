@@ -24,8 +24,10 @@
 #include "lexerminc.h"
 #include "configs.h"
 #include "terminalcontroller.h"
+#include "settingdialog.h"
 
-MainWindow::MainWindow() {
+MainWindow::MainWindow()
+    : settingDialog(nullptr) {
     textEdit = new QsciScintilla;
     textEdit->setUtf8(true);
     terminalController = new TerminalController();
@@ -91,7 +93,12 @@ bool MainWindow::saveAs() {
 }
 
 void MainWindow::changeSettings() {
-    // 改变设置
+    if (!settingDialog) {
+        settingDialog = new SettingDialog(this);
+        connect(settingDialog, &SettingDialog::dataChanged,
+                this, &MainWindow::readSettings);
+    }
+    settingDialog->show();
 }
 
 void MainWindow::about() {
@@ -107,7 +114,7 @@ void MainWindow::documentWasModified() {
 void MainWindow::run() {
     QStringList arguments;
     arguments << curFile;
-    terminalController->init(GetConfig()->interpreter, arguments);
+    terminalController->init(Config::GetConfig()->interpreter, arguments);
     terminalController->start();
     terminalController->show();
 }
@@ -210,15 +217,7 @@ void MainWindow::createStatusBar() {
 }
 
 void MainWindow::readSettings() {
-    QSettings settings("Xenon", "Xenon Editor");
-    auto c = GetConfig();
-    c->windowPos = settings.value("pos", QPoint(200, 200)).toPoint();
-    c->windowSize = settings.value("size", QSize(400, 400)).toSize();
-    c->autoIndent = settings.value("autoIndent", true).toBool();
-    c->tabWidth = settings.value("tabWidth", 4).toInt();
-    c->fontSize = settings.value("fontSize", 15).toInt();
-    c->showLineNumber = settings.value("showLineNumber", true).toBool();
-    c->interpreter = settings.value("interpreter", "E:/Documents/GitHub/Xenon-Editor/build-Xenon-Editor-Desktop_Qt_5_9_1_MSVC2017_64bit-Release/release/Terminal.exe").toString();
+    auto c = Config::GetConfig();
 
     resize(c->windowSize);
     move(c->windowPos);
@@ -236,15 +235,9 @@ void MainWindow::readSettings() {
 }
 
 void MainWindow::writeSettings() {
-    QSettings settings("Xenon", "Xenon Editor");
-    auto c = GetConfig();
-    settings.setValue("windowPos", c->windowPos);
-    settings.setValue("windowSize", c->windowSize);
-    settings.setValue("autoIndent", c->autoIndent);
-    settings.setValue("tabWidth", c->tabWidth);
-    settings.setValue("fontSize", c->fontSize);
-    settings.setValue("showLineNumber", c->showLineNumber);
-    settings.setValue("interpreter", c->interpreter);
+    auto c = Config::GetConfig();
+    c->windowSize = size();
+    c->windowPos = pos();
 }
 
 bool MainWindow::maybeSave() {

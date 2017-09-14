@@ -29,17 +29,20 @@ SOURCES += \
         mainwindow.cpp \
     lexerminc.cpp \
     terminalcontroller.cpp \
-    terminalcontroller.cpp
+    terminalcontroller.cpp \
+    settingdialog.cpp
 
 HEADERS += \
         mainwindow.h \
     configs.h \
     lexerminc.h \
     terminalcontroller.h \
-    terminalcontroller.h
+    terminalcontroller.h \
+    settingdialog.h
 
 RESOURCES += \
     application.qrc
 
 FORMS += \
-    terminalcontroller.ui
+    terminalcontroller.ui \
+    settingdialog.ui
