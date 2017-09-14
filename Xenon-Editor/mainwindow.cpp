@@ -30,7 +30,9 @@ MainWindow::MainWindow()
     : settingDialog(nullptr) {
     textEdit = new QsciScintilla;
     textEdit->setUtf8(true);
+
     terminalController = new TerminalController();
+
     textLexer = new LexerMinC;
     textLexer->setColor(QColor(Qt::blue), QsciLexerCPP::KeywordSet2);
     textEdit->setLexer(textLexer);
@@ -50,6 +52,7 @@ MainWindow::MainWindow()
             this, SLOT(documentWasModified()));
 
     setCurrentFile("");
+    setWindowIcon(QIcon(":/images/icon.png"));
 }
 
 void MainWindow::closeEvent(QCloseEvent *event) {
@@ -226,6 +229,8 @@ void MainWindow::readSettings() {
     auto lexer = textEdit->lexer();
     auto font = QFont(); font.setPointSize(c->fontSize);
     lexer->setFont(font);
+
+    terminalController->readSettings();
 
     if (c->showLineNumber) {
         textEdit->setMarginType(0, QsciScintilla::NumberMargin);

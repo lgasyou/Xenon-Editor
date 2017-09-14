@@ -21,6 +21,8 @@ public:
 
     void start();
 
+    void readSettings();
+
 protected:
     void closeEvent(QCloseEvent *);
 
@@ -36,7 +38,7 @@ private:
     QStringList arguments;
     bool writingManually;
     QString cmd;
-    QString cachedText;
+    int lastTextLength;
     Ui::TerminalController *ui;
 };
 

@@ -1,5 +1,6 @@
 #include "terminalcontroller.h"
 #include "ui_terminalcontroller.h"
+#include "configs.h"
 #include <QProcess>
 #include <QTextCodec>
 #include <QDebug>
@@ -24,8 +25,7 @@ TerminalController::TerminalController(QWidget *parent) :
     connect(ui->textEdit, &QTextEdit::textChanged,
             this, &TerminalController::write);
 
-    ui->textEdit->setFontPointSize(15);
-    resize(800, 600);
+    readSettings();
     setWindowTitle("Terminal");
 }
 
@@ -35,7 +35,6 @@ TerminalController::~TerminalController() {
 }
 
 void TerminalController::init(const QString &interpreter, const QStringList &arguments) {
-    qDebug() << interpreter;
     this->interpreter = interpreter;
     this->arguments = arguments;
 }
@@ -43,6 +42,12 @@ void TerminalController::init(const QString &interpreter, const QStringList &arg
 void TerminalController::start() {
     proc->start(interpreter, arguments);
     ui->textEdit->clear();
+}
+
+void TerminalController::readSettings() {
+    auto c = Config::GetConfig();
+    ui->textEdit->setFontPointSize(c->fontSize);
+    resize(800, 600);
 }
 
 void TerminalController::closeEvent(QCloseEvent *) {
@@ -64,21 +69,23 @@ void TerminalController::readFromTerminal() {
 }
 
 void TerminalController::write2Terminal() {
-    proc->write(cmd.toLocal8Bit());
-    cmd.clear();
+    if (proc->state() == QProcess::Running) {
+        proc->write(cmd.toLocal8Bit());
+        cmd.clear();
+    }
 }
 
 void TerminalController::write() {
     if (writingManually) {
         auto text = ui->textEdit->toPlainText();
-        if (text.length() > cachedText.length()) {
+        if (text.length() > lastTextLength) {
             cmd += text[text.length() - 1];
-        } else if (text.length() == cachedText.length()) {
+        } else if (text.length() == lastTextLength) {
             cmd[cmd.length() - 1] = text[text.length() - 1];
         } else {
             cmd.chop(1);
         }
-        cachedText = text;
+        lastTextLength = text.length();
         if (!cmd.isEmpty() && cmd[cmd.length() - 1] == '\n') {
             write2Terminal();
         }

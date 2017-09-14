@@ -31,9 +31,6 @@ private slots:
     void run();
     void readSettings();
 
-signals:
-    void inputSignal(const QString &in);
-
 private:
     void createActions();
     void createMenus();

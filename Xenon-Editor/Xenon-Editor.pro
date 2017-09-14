@@ -46,3 +46,5 @@ RESOURCES += \
 FORMS += \
     terminalcontroller.ui \
     settingdialog.ui
+
+RC_FILE += icon.rc
